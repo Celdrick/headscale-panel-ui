@@ -8,14 +8,12 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  release:
-    types: [created]  # 触发条件是release被创建
 
 jobs:
   build:
-
+  
     runs-on: ubuntu-latest
-
+    
     strategy:
       matrix:
         node-version: [16.x, 18.x, 20.x]
@@ -48,16 +46,14 @@ jobs:
         zip -r ../headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
         ls
 
-    - name: Create Release Asset
-      id: create_release_asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}  # 确保这里是从事件对象正确获取upload_url
-        asset_path: ./headscale-panel-ui.zip
-        asset_name: headscale-panel-ui.zip
-        asset_content_type: application/zip
+    - name: Upload firmware to cowtransfer
+      id: cowtransfer
+      # if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+      run: |
+        curl -sL https://git.io/cowtransfer | sh
+        ./cowtransfer-uploader --block 2621440 -s -p 64 --no-progress ./headscale-panel-ui-${{ env.date }}-${{ matrix.node-version }}.zip 2>&1 | tee cowtransfer.log
+        echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+        echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
 
     - name: 上传至artifact
       uses: actions/upload-artifact@main
