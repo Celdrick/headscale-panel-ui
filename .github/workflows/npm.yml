@@ -8,6 +8,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [created]  # 触发条件是release被创建
 
 jobs:
   build:
@@ -61,5 +63,5 @@ jobs:
       uses: actions/upload-artifact@main
       # if: steps.zip.outputs.status == 'success'
       with:
-        name: headscale-panel-ui
+        name: ${{ matrix.node-version }}-headscale-panel-ui
         path: headscale-panel-ui.zip
