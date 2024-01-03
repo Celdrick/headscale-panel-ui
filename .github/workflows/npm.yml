@@ -23,10 +23,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       
-    # 将项目所有文件复制到新的目录（如：./build）
-    - name: Copy project files
-      run: |
-        cp -r . ./workspace
+    # # 将项目所有文件复制到新的目录（如：./build）
+    # - name: Copy project files
+    #   run: |
+    #     cp -r . ./workspace
 
     
     - name: Install dependencies and build
@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies and build
       run: |
-        cd workspace
+        ls
         npm install
         npm run build:prod
 
@@ -45,7 +45,7 @@ jobs:
 
     - name: Create zip archive of dist folder
       run: |
-        cd workspace/dist
+        cd dist
         zip -r ../headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
 
     - name: Create Release Asset
