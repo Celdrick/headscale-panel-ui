@@ -46,16 +46,16 @@ jobs:
         zip -r ../headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
         ls
 
-    # - name: Create Release Asset
-    #   id: create_release_asset
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-    #   with:
-    #     upload_url: ${{ github.event.release.upload_url }}  # 自动获取当前release的上传URL
-    #     asset_path: headscale-panel-ui.zip
-    #     asset_name: headscale-panel-ui.zip
-    #     asset_content_type: application/zip
+    - name: Create Release Asset
+      id: create_release_asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}  # 确保这里是从事件对象正确获取upload_url
+        asset_path: ./headscale-panel-ui.zip
+        asset_name: headscale-panel-ui.zip
+        asset_content_type: application/zip
 
     - name: 上传至artifact
       uses: actions/upload-artifact@main
