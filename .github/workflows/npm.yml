@@ -20,19 +20,32 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    # 将项目所有文件复制到新的目录（如：./build）
+    - name: Copy project files
+      run: |
+        cp -r . ./workspace
+
+    
     - name: Install dependencies and build
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm install
-    - run: npm run build:prod
+
+    - name: Install dependencies and build
+      run: |
+        cd workspace
+        npm install
+        npm run build:prod
+
+    
 
     - name: Create zip archive of dist folder
       run: |
-        cd dist
+        cd workspace/dist
         zip -r ../headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
 
     - name: Create Release Asset
@@ -42,6 +55,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}  # 自动获取当前release的上传URL
-        asset_path: ./headscale-panel-ui.zip
+        asset_path: workspace/headscale-panel-ui.zip
         asset_name: headscale-panel-ui.zip
         asset_content_type: application/zip
