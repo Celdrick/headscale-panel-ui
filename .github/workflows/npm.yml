@@ -37,14 +37,12 @@ jobs:
         # npm audit fix --force
         npm run build:prod
 
-    
-
     - name: Create zip archive of dist folder
       id: zip
       run: |
         cd dist
         zip -r ../${{ matrix.node-version }}-headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
-        echo "::save-output name=status::success"
+        echo "status=success" >> "$GITHUB_OUTPUT"
 
     # - name: Create Release
     #   id: create_release
@@ -67,44 +65,42 @@ jobs:
     #     asset_name: ${{ matrix.node-version }}-headscale-panel-ui.zip
     #     asset_content_type: application/vnd.android.package-archive    
 
-    - name: Create release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref_name }}
-
-    - name: Upload assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./${{ matrix.node-version }}-headscale-panel-ui.zip
-        asset_name: ${{ matrix.node-version }}-headscale-panel-ui
-        asset_content_type: application/octet-stream
-
-
-
-    # - name: 生成发布标签
-    #   id: tag
-    #   # if: steps.zip.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
-    #   run: |
-    #     echo "::save-output name=release_tag::$(date +"%Y.%m.%d-%H.%M")"
-    #     touch release.txt
-    #     echo "
-    #     编译release " >> release.txt
-    #     echo "::save-output name=status::success"
-
-    # - name: 自动发布固件到 Releases
-    #   uses: softprops/action-gh-release@v1
-    #   # if: steps.tag.outputs.status == 'success' && !cancelled()
+    # - name: Create release
+    #   id: create_release
+    #   uses: actions/create-release@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
     #   with:
-    #     tag_name: ${{ steps.tag.outputs.release_tag }}
-    #     body_path: release.txt
-    #     files: ${{ matrix.node-version }}-headscale-panel-ui.zip
+    #     tag_name: ${{ github.ref }}
+    #     release_name: Release ${{ github.ref_name }}
+
+    # - name: Upload assets
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: ./${{ matrix.node-version }}-headscale-panel-ui.zip
+    #     asset_name: ${{ matrix.node-version }}-headscale-panel-ui
+    #     asset_content_type: application/octet-stream
+
+    - name: 生成发布标签
+      id: tag
+      # if: steps.zip.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H.%M")" >> "$GITHUB_OUTPUT"
+        touch release.txt
+        echo "
+        编译release " >> release.txt
+        echo "status=success" >> "$GITHUB_OUTPUT"
+
+    - name: 自动发布固件到 Releases
+      uses: softprops/action-gh-release@v1
+      # if: steps.tag.outputs.status == 'success' && !cancelled()
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ matrix.node-version }}-headscale-panel-ui.zip
 
     - name: 上传至artifact
       uses: actions/upload-artifact@main
