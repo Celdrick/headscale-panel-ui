@@ -9,6 +9,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  UPLOAD_RELEASE: true
+  TZ: Asia/Shanghai
+  GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+  
 jobs:
   build:
   
@@ -43,21 +48,32 @@ jobs:
       id: zip
       run: |
         cd dist
-        zip -r ../headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
-        ls
+        zip -r ../${{ matrix.node-version }}-headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
+        echo "::set-output name=status::success"
 
-    - name: Upload firmware to cowtransfer
-      id: cowtransfer
-      # if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+
+
+    - name: 生成发布标签
+      id: tag
+      if: steps.zip.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        curl -sL https://git.io/cowtransfer | sh
-        ./cowtransfer-uploader --block 2621440 -s -p 64 --no-progress ./headscale-panel-ui-${{ env.date }}-${{ matrix.node-version }}.zip 2>&1 | tee cowtransfer.log
-        echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
-        echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H.%M")"
+        touch release.txt
+        echo "
+        编译release >> release.txt
+        echo "::set-output name=status::success"
+
+    - name: 自动发布固件到 Releases
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ matrix.node-version }}-headscale-panel-ui.zip
 
     - name: 上传至artifact
       uses: actions/upload-artifact@main
       # if: steps.zip.outputs.status == 'success'
       with:
         name: ${{ matrix.node-version }}-headscale-panel-ui
-        path: headscale-panel-ui.zip
+        path: ${{ matrix.node-version }}-headscale-panel-ui.zip
