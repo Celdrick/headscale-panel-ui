@@ -60,7 +60,7 @@ jobs:
         echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H.%M")"
         touch release.txt
         echo "
-        编译release >> release.txt
+        编译release " >> release.txt
         echo "::set-output name=status::success"
 
     - name: 自动发布固件到 Releases
