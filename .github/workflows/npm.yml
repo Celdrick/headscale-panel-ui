@@ -55,7 +55,7 @@ jobs:
 
     - name: 生成发布标签
       id: tag
-      if: steps.zip.states.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: steps.zip.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
         echo "::save-output name=release_tag::$(date +"%Y.%m.%d-%H.%M")"
         touch release.txt
