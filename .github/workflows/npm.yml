@@ -49,7 +49,7 @@ jobs:
       run: |
         cd dist
         zip -r ../${{ matrix.node-version }}-headscale-panel-ui.zip .  # 假设需要将dist文件夹内容压缩为headscale-panel-ui.zip
-        echo "::save-state name=status::success"
+        echo "::save-output name=status::success"
 
 
 
@@ -57,15 +57,15 @@ jobs:
       id: tag
       if: steps.zip.states.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "::save-state name=release_tag::$(date +"%Y.%m.%d-%H.%M")"
+        echo "::save-output name=release_tag::$(date +"%Y.%m.%d-%H.%M")"
         touch release.txt
         echo "
         编译release " >> release.txt
-        echo "::save-state name=status::success"
+        echo "::save-output name=status::success"
 
     - name: 自动发布固件到 Releases
       uses: softprops/action-gh-release@v1
-      if: steps.tag.states.status == 'success' && !cancelled()
+      if: steps.tag.outputs.status == 'success' && !cancelled()
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
@@ -73,7 +73,7 @@ jobs:
 
     - name: 上传至artifact
       uses: actions/upload-artifact@main
-      # if: steps.zip.states.status == 'success'
+      if: steps.zip.output.status == 'success' && !cancelled()
       with:
         name: ${{ matrix.node-version }}-headscale-panel-ui
         path: ${{ matrix.node-version }}-headscale-panel-ui.zip
